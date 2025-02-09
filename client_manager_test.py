@@ -127,11 +127,18 @@ def test_client_manager():
                 '(4) Rafael Nadal Parera <r.nadal@rafaelnadal.com> [+341111111111, +342222222222]'
             ]
 
-            # Finally, search by a full phone number.
+            # Search by a full phone number.
             clients = cm.search_clients({
                 'phone_number': '+13333333333',
             })
             assert [str(c) for c in clients.values()] == [
                 '(1) Michael Keaton <m.keaton@hollywood.com> [+13333333333]'
             ]
+
+            # Search that shouldn't find anything.
+            clients = cm.search_clients({
+                'first_name': 'Michael',
+                'last_name': 'Dickinson',
+            })
+            assert clients is None
 

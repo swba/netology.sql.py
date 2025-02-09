@@ -111,32 +111,33 @@ class ClientManager:
 
         return None
 
-    def load_clients(self, client_ids: list[int]) -> dict[int, Client]:
+    def load_clients(self, client_ids: list[int]) -> dict[int, Client] | None:
         """Loads and returns client instances given their IDs
 
         Args:
             client_ids: Client IDs.
 
         """
-        with self.conn.cursor(row_factory=dict_row) as cur:
-            # Fetch base clients data as a list of dicts.
-            cur.execute(
-                'SELECT * FROM client WHERE client_id = ANY(%s);',
-                (client_ids,)
-            )
-            clients = {item['client_id']: Client(item) for item in cur.fetchall()}
+        if client_ids:
+            with self.conn.cursor(row_factory=dict_row) as cur:
+                # Fetch base clients data as a list of dicts.
+                cur.execute(
+                    'SELECT * FROM client WHERE client_id = ANY(%s);',
+                    (client_ids,)
+                )
+                clients = {item['client_id']: Client(item) for item in cur.fetchall()}
 
-            # Fetch all phone numbers at once for performance reasons.
-            cur.execute(
-                'SELECT * FROM client_phone_number WHERE client_id = ANY(%s);',
-                (client_ids,)
-            )
-            for item in cur.fetchall():
-                client_id = item['client_id']
-                if client_id in clients:
-                    clients[client_id].phone_numbers.append(item['phone_number'])
+                # Fetch all phone numbers at once for performance reasons.
+                cur.execute(
+                    'SELECT * FROM client_phone_number WHERE client_id = ANY(%s);',
+                    (client_ids,)
+                )
+                for item in cur.fetchall():
+                    client_id = item['client_id']
+                    if client_id in clients:
+                        clients[client_id].phone_numbers.append(item['phone_number'])
 
-        return clients
+            return clients
 
     def update_client(self, client: Client) -> Client | None:
         """Updates client data
